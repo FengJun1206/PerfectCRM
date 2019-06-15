@@ -1,0 +1,168 @@
+{% extends 'include/index.html' %}
+
+{% load static %}
+
+{% block extra-css %}
+    <link href="{% static 'plugins/dropzone/dropzone.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h3>Hubery_Jun 在线教育 | 学员报名</h3>
+
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title">学员在线报名</h3>
+            </div>
+
+            <div class="panel-body">
+                <form method="post" onsubmit="return BeforeRemoveDisabled()" novalidate>
+                    {% csrf_token %}
+
+                    {{ customer_form.errors }}
+                    {% for customer in customer_form %}
+                        <div class="form-group col-lg-6">
+                            <label class="col-sm-2 control-label">{{ customer.label_tag }}</label>
+                            <div class="col-sm-10">
+                                {{ customer }}
+                            </div>
+                            <span style="color: red">{{ customer.errors.0 }}</span>
+                        </div>
+                    {% endfor %}
+
+
+                    <div class="form-group col-lg-6">
+                        <label class="col-sm-2 control-label">班级</label>
+                        <div class="col-sm-10">
+                            {{ enrollment_obj.class_grade }}
+                        </div>
+                    </div>
+
+                    <div class="form-group col-lg-6">
+                        <label class="col-sm-2 control-label">学费</label>
+                        <div class="col-sm-10">
+                            {{ enrollment_obj.class_grade.course.price }}
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- 合同协议 -->
+                    <pre style="height: 400px">{{ enrollment_obj.class_grade.contract_template.content }}</pre>
+                    <input type="checkbox" name="contract_agreed"> 我已认真阅读完毕，无条件同意！
+
+                    <input type="submit" value="提交" class="btn btn-info pull-right">
+                </form>
+
+                <hr>
+
+                <!-- 证件上传 -->
+                <div class="file-upload">
+                    <h3>身份证上传</h3>
+
+                    <ul id="uploaded_files">
+{#                        <li>11 <span class='glyphicon glyphicon-remove'></span></li>#}
+{#                        <li>22 <span class='glyphicon glyphicon-remove'></span></li>#}
+{#                        <li>33 <span class='glyphicon glyphicon-remove'></span></li>#}
+
+                    </ul>
+
+                    <form id="myAwesomeDropzone" action="{% url 'enrollment_fileupload' enrollment_obj.id %}"
+                          class="dropzone">
+                        <div class="fallback">
+                            <input name="file" type="file" multiple/>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+            <div class="panel-footer">
+                Panel footer
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 表单提交前，移除所有的 disabled，form 表单不能提交 disabled
+        function BeforeRemoveDisabled() {
+            $(':disabled').removeAttr('disabled');
+
+            // 如果没有上传证件信息，提示上传
+            if ($('#uploaded_files').children().length == 0){
+                alert('请上传证件信息！');
+                return false
+            }
+
+            // 如果没有勾选协议，表单不能提交
+            if (!$("input[name='contract_agreed']").prop('checked')) {
+                alert('请勾选合同协议！');
+                return false
+            }
+        }
+    </script>
+{% endblock %}
+
+<!-- JS -->
+{% block extra-js %}
+
+    <script src="{% static 'plugins/dropzone/dropzone.js' %}"></script>
+    <script>
+        // "myAwesomeDropzone" is the camelized version of the HTML element's ID
+        Dropzone.options.myAwesomeDropzone = {
+            paramName: "file", // The name that will be used to transfer the file
+            maxFilesize: 2, // MB      最大不能上传超过 2 M
+            maxFiles: 2,    // 最多上传 2 个文件
+            parallelUploads: 1,     // 单词并非上传 1 个
+            accept: function (file, done) {
+                if (file.name == "justinbieber.jpg") {
+                    done("Naha, you don't.");
+                }
+                else {
+                    done();
+                }
+            }
+        };
+
+        // 避免重复创建 Dropzone
+        Dropzone.options.myAwesomeDropzone = false;
+
+        // 上传成功回调，返回值存在 response 中
+        $(function () {
+            // Now that the DOM is fully loaded, create the dropzone, and setup the
+            // event listeners
+            // Prevent Dropzone from auto discovering this element:
+{#            Dropzone.options.myAwesomeDropzone = false;#}
+            var myDropzone = new Dropzone("#myAwesomeDropzone");
+            myDropzone.on("success", function (file, response) {
+                /* Maybe display some more file information on your page */
+                console.log("success", file, file.name, response);
+                var response = JSON.parse(response);
+                if (!response.status) {
+                    alert(response.error);
+                } else {
+                    var ele = "<li class='file_title'>" + file.name + ' ' + "<span class='glyphicon glyphicon-remove'></span>" + "</li>" ;
+                    $("#uploaded_files").append(ele);
+                    alert(response.message)
+
+                }
+
+            });
+        });
+
+    // $('.file_title').children('span')
+    /*
+     $('#uploaded_files').on('click', 'span', function () {
+        alert(123);
+    })
+     */
+
+    $('#uploaded_files').on('click', 'span', function () {
+       $(this).parent().remove();
+    })
+
+
+
+    </script>
+{% endblock %}

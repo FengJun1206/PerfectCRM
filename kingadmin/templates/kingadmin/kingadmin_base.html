@@ -1,0 +1,128 @@
+{% load kingadmin_tags %}
+
+<form class="form-horizontal" method="post" novalidate onsubmit="VerificationBeforeFormSubmit()">
+    {% csrf_token %}
+
+    {% for field in form_obj %}
+        <div class="form-group">
+            <label class="col-sm-2 control-label">{{ field.label_tag }}</label>
+            <div class="col-sm-6">
+
+                <!-- field.name 字段名字，若字段在 filter_horizontal 中，则绑定双击左右来回切换事件 -->
+                {% if field.name in admin_class.filter_horizontal %}
+                    <!--左边 filter-horizontal-->
+                    <div class="col-lg-6">
+                        <h4 class="text-center" style="background: #f8f8f8; border: 1px solid #ccc;">
+                            可用 {{ field.name }}</h4>
+                        <input type="search" class="form-control" oninput="FuzzSearch(this)">
+                        <select multiple class="form-control" id="id_{{ field.name }}_from">
+
+                            {% get_available_m2m_data field.name form_obj admin_class as available_m2m_data %}
+                            {% for obj in available_m2m_data %}
+                                <option value="{{ obj.id }}"
+                                        ondblclick="MoveSelectedOption(this, 'id_{{ field.name }}_to')">
+                                    {{ obj }}</option>
+                            {% endfor %}
+
+                        </select>
+
+                        <!--选择全部，移动到右边-->
+                        <p class="text-center" style="margin-top: 10px">
+                            <a onclick="MoveAllOptions('id_{{ field.name }}_from', 'id_{{ field.name }}_to')" style="cursor: pointer;">全选</a>
+                        </p>
+                    </div>
+
+                    <!--右边-->
+                    <div class="col-lg-6">
+                        <h4 class="text-center" style="background: #f8f8f8; border: 1px solid #ccc;">
+                            选中的 {{ field.name }}</h4>
+                        <select multiple class="form-control" id="id_{{ field.name }}_to" tag="selected_m2m"
+                                name="{{ field.name }}">
+                            {% get_selected_m2m_data field.name form_obj admin_class as selected_m2m_data %}
+                            {% for obj in selected_m2m_data %}
+                                <option value="{{ obj.id }}"
+                                        ondblclick="MoveSelectedOption(this, 'id_{{ field.name }}_from')">
+                                    {{ obj }}</option>
+                            {% endfor %}
+
+                        </select>
+
+                     <!--选择全部，移动到左边-->
+                        <p class="text-center" style="margin-top: 10px">
+                            <a onclick="MoveAllOptions('id_{{ field.name }}_to', 'id_{{ field.name }}_from')" style="cursor: pointer;">删除全部</a>
+                        </p>
+                    </div>
+
+                    <!--若字段在 filter_horizontal 中，则正常渲染即可-->
+                {% else %}
+                    {{ field }}
+                {% endif %}
+            </div>
+
+            <span style="color: red">{{ field.errors.0 }}</span>
+        </div>
+    {% endfor %}
+
+
+    <!--这是修改表单-->
+    {% if not admin_class.form_add %}
+        {% for field in admin_class.readonly_fields %}
+            <div class="form-group">
+                <label class="col-sm-2 control-label">{{ field }}</label>
+                <div class="col-sm-6">
+                    <p>{% get_obj_field_val form_obj field %}</p>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="form-group">
+        <div class="col-sm-2">
+            <a class="btn btn-danger" href="/kingadmin/{{ app_name }}/{{ model_name }}/{{ form_obj.instance.id }}/delete/">删除</a>
+        </div>
+
+        <div class="col-sm-offset-11 col-sm-2">
+            <button type="submit" class="btn btn-info">保存</button>
+        </div>
+    </div>
+</form>
+
+
+<script>
+    function MoveSelectedOption(that, target_id) {
+        var new_target_id = $(that).parent().attr('id');
+        var option = "<option value='" + $(that).val() + "'ondblclick=MoveSelectedOption(this,'" + new_target_id + "') >" + $(that).text() + "</option>";
+        $('#' + target_id).append(option);
+        $(that).remove();
+    }
+
+    function VerificationBeforeFormSubmit() {
+
+        $("select[tag] option").prop('selected', true);
+
+    }
+
+    // 移动所有 option 标签
+    function MoveAllOptions(from_id, to_id) {
+        // console.log($('#' + from_id).children());    // 所有 option 标签
+        $('#' + from_id).children().each(function () {
+            MoveSelectedOption(this, to_id);
+        })
+    }
+
+    // filter-horizontal 搜索栏，模糊匹配
+    function FuzzSearch(that) {
+        // console.log($(that).val());  that: input 标签
+        var input_val = $(that).val().toUpperCase();      // input 标签 value 值
+        var select = $(that).next('select');        // select 标签
+        $(select).children().each(function () {
+            if ($(this).text().toUpperCase().search(input_val) != -1){      // search() 字符串搜索，返回搜索字符索引，没有匹配到的返回 -1
+                $(this).show();
+            }
+            else {
+                $(this).hide();
+            }
+        })
+        
+    }
+</script>

@@ -1,0 +1,26 @@
+{% extends 'kingadmin/include/index.html' %}
+
+{% load kingadmin_tags %}
+
+{% block right-content %}
+
+{#    {% block breadcrumb %}#}
+{#        {{ block.super }}#}
+{#    {% endblock %}#}
+
+    <!-- 面包屑导航 -->
+    <ol class="breadcrumb">
+        <li><a href="/kingadmin/">首页</a></li>
+        <li><a href="/kingadmin/{{ app_name }}/">{{ app_name }}</a></li>
+        <li><a href="/kingadmin/{{ app_name }}/{{ model_name }}">{% get_model_verbose_name admin_class %}</a></li>
+        <li class="active">{{ form_obj.instance }}</li>
+    </ol>
+
+    {% block h2 %}
+        <h2 class="page-header" style="font-size: 20px">修改 {{ model_name }}</h2>
+    {% endblock %}
+
+
+    {% include 'kingadmin/kingadmin_base.html' %}
+
+{% endblock %}

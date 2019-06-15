@@ -1,0 +1,17 @@
+{% extends 'kingadmin/include/index.html' %}
+
+{% load kingadmin_tags %}
+
+{% block right-content %}
+
+    {% block breadcrumb %}
+        {{ block.super }}
+    {% endblock %}
+
+    {% block h2 %}
+        <h2 class="page-header" style="font-size: 20px">修改 {{ model_name }}</h2>
+    {% endblock %}
+
+
+    {% include 'kingadmin/kingadmin_base.html' %}
+{% endblock %}

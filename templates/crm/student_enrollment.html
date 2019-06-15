@@ -1,0 +1,40 @@
+{% extends 'include/index.html' %}
+
+{% block right-content-container %}
+    <h1>学员报名页</h1>
+
+    <form method="post" novalidate class="form-horizontal">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="col-sm-2" id="customer_id">客户</label>
+            <div class="col-sm-10">
+                <select class="form-control" name="customer_id">
+                    {% for customer in customer_data %}
+                        <option value="{{ customer.id }}">{{ customer.name }}</option>
+                    {% endfor %}
+
+                </select>
+            </div>
+
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-2" id="class_grade_id">班级</label>
+            <div class="col-sm-10">
+                <select class="form-control" name="class_grade_id">
+                    {% for class_list in class_list_data %}
+                        <option value="{{ class_list.id }}">{{ class_list }}</option>
+                    {% endfor %}
+
+                </select>
+            </div>
+        </div>
+
+        <input type="submit" class="btn btn-info pull-right" value="下一步">
+    </form>
+
+    {% if enrollment_links %}
+        <label>报名链接</label>
+        <pre>请将此报名链接发送给学员填写 ：{{ enrollment_links }}</pre>
+    {% endif %}
+{% endblock %}
